@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fee Management System | Fee Categories</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="system-title">Fee Management System</h1>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="index.html" class="nav-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li class="nav-item"><a href="students.html" class="nav-link"><i class="fas fa-user-graduate"></i> Students</a></li>
+                    <li class="nav-item"><a href="fees.html" class="nav-link"><i class="fas fa-money-bill-wave"></i> Fees</a></li>
+                    <li class="nav-item"><a href="generate_monthly_fees.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Generate Monthly Fees</a></li>
+                    <li class="nav-item"><a href="payment_approval.html" class="nav-link"><i class="fas fa-check-double"></i> Payment Approval</a></li>
+                    <li class="nav-item"><a href="fee_categories.html" class="nav-link active"><i class="fas fa-tags"></i> Fee Categories</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-users"></i> Parents</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-user-cog"></i> Users</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-chalkboard-teacher"></i> Academic Info</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-credit-card"></i> Payment Methods</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-sliders-h"></i> Setting</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main-content">
+            <div class="content-header">
+                <h2>Fee Categories</h2>
+                <p>Define and manage fee types used across the system.</p>
+            </div>
+            <div class="content-area">
+
+                <!-- STATS -->
+                <div class="category-stats">
+                    <div class="category-stat-card blue">
+                        <div class="category-stat-icon"><i class="fas fa-tags"></i></div>
+                        <div class="category-stat-info">
+                            <h4>Total Categories</h4>
+                            <div class="value" id="statTotal">0</div>
+                        </div>
+                    </div>
+                    <div class="category-stat-card green">
+                        <div class="category-stat-icon"><i class="fas fa-dollar-sign"></i></div>
+                        <div class="category-stat-info">
+                            <h4>Total Default Value</h4>
+                            <div class="value" id="statTotalAmount">$0</div>
+                        </div>
+                    </div>
+                    <div class="category-stat-card purple">
+                        <div class="category-stat-icon"><i class="fas fa-fire"></i></div>
+                        <div class="category-stat-info">
+                            <h4>Most Used</h4>
+                            <div class="value" id="statMostUsed" style="font-size:1.15rem;">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TOOLBAR -->
+                <div class="category-toolbar">
+                    <div class="search-input-group">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search categories by name or description...">
+                    </div>
+                    <button class="btn-add-category" id="openAddModalBtn">
+                        <i class="fas fa-plus-circle"></i> Add New Category
+                    </button>
+                </div>
+
+                <!-- TABLE -->
+                <div style="overflow-x: auto;">
+                    <table class="students-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Default Amount</th>
+                                <th>Usage</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoriesTableBody">
+                            <tr><td colspan="5" style="text-align:center;">Loading categories...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- CATEGORY FORM MODAL -->
+    <div id="categoryModal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 520px; height:auto; max-height:85vh; border-radius:20px;">
+            <div class="modal-header">
+                <h3 id="modalTitle"><i class="fas fa-tag"></i> Add New Category</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="categoryForm" class="category-form">
+                <div class="modal-body">
+                    <input type="hidden" id="categoryId">
+                    <div class="form-group">
+                        <label>Category Name <span class="required">*</span></label>
+                        <input type="text" id="categoryName" placeholder="e.g., Tuition Fee" required maxlength="100">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="categoryDescription" placeholder="Brief description of this fee category..." maxlength="255"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Default Amount <span class="required">*</span></label>
+                        <div class="amount-input-wrapper">
+                            <input type="number" id="categoryAmount" step="0.01" min="0" placeholder="0.00" required>
+                        </div>
+                        <div class="form-hint">Suggested amount when assigning this fee to a student.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel">Cancel</button>
+                    <button type="submit" class="btn-submit" id="submitBtn">Save Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // State
+        var categories = [];
+        var editMode = false;
+
+        // DOM
+        var tableBody = document.getElementById('categoriesTableBody');
+        var modal = document.getElementById('categoryModal');
+        var form = document.getElementById('categoryForm');
+        var modalTitle = document.getElementById('modalTitle');
+        var submitBtn = document.getElementById('submitBtn');
+        var openAddBtn = document.getElementById('openAddModalBtn');
+        var searchInput = document.getElementById('searchInput');
+
+        // Init
+        loadCategories();
+
+        // Open add modal
+        openAddBtn.addEventListener('click', function() {
+            resetForm();
+            modalTitle.innerHTML = '<i class="fas fa-tag"></i> Add New Category';
+            submitBtn.textContent = 'Save Category';
+            editMode = false;
+            modal.style.visibility = 'visible';
+            modal.style.opacity = '1';
+        });
+
+        // Close modal
+        var closeBtns = document.querySelectorAll('.close-modal, .btn-cancel');
+        for (var i = 0; i < closeBtns.length; i++) {
+            closeBtns[i].addEventListener('click', function() {
+                modal.style.visibility = 'hidden';
+                modal.style.opacity = '0';
+            });
+        }
+        window.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.style.visibility = 'hidden';
+                modal.style.opacity = '0';
+            }
+        });
+
+        function resetForm() {
+            form.reset();
+            document.getElementById('categoryId').value = '';
+        }
+
+        // Load categories
+        function loadCategories() {
+            var url = 'backend/get_fee_categories.php';
+            if (searchInput.value) url += '?search=' + encodeURIComponent(searchInput.value);
+
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        if (data.success) {
+                            categories = data.categories;
+                            displayCategories(categories);
+                            updateStats(data.stats);
+                        } else {
+                            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Error loading categories</td></tr>';
+                        }
+                    } catch(e) {
+                        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Invalid response</td></tr>';
+                    }
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">HTTP error ' + xhr.status + '</td></tr>';
+                }
+            };
+            xhr.onerror = function() {
+                tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Network error</td></tr>';
+            };
+            xhr.send();
+        }
+
+        function displayCategories(list) {
+            if (!list || list.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No categories found. Click "Add New Category" to start.</td></tr>';
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < list.length; i++) {
+                var c = list[i];
+                var initial = (c.fee_name || '?').charAt(0).toUpperCase();
+                var usageClass = c.usage_count > 0 ? 'active' : '';
+                html += '<tr>';
+                html += '<td>';
+                html +=   '<div class="category-name-cell">';
+                html +=     '<div class="category-icon">' + initial + '</div>';
+                html +=     '<div class="category-name-text">' + escapeHtml(c.fee_name) + '</div>';
+                html +=   '</div>';
+                html += '</td>';
+                html += '<td><span class="category-desc-text">' + (c.description ? escapeHtml(c.description) : '<em style="color:#cbd5e1;">No description</em>') + '</span></td>';
+                html += '<td class="amount-cell">$ ' + formatNumber(c.default_amount) + '</td>';
+                html += '<td><span class="usage-pill ' + usageClass + '"><i class="fas fa-link"></i> ' + c.usage_count + ' fee' + (c.usage_count != 1 ? 's' : '') + '</span></td>';
+                html += '<td class="category-actions">';
+                html += '<button class="btn-edit" onclick="editCategory(' + c.fee_type_id + ')" title="Edit"><i class="fas fa-edit"></i></button>';
+                html += '<button class="btn-delete" onclick="deleteCategory(' + c.fee_type_id + ', \'' + escapeHtml(c.fee_name).replace(/'/g, "\\'") + '\', ' + c.usage_count + ')" title="Delete"><i class="fas fa-trash-alt"></i></button>';
+                html += '</td>';
+                html += '</tr>';
+            }
+            tableBody.innerHTML = html;
+        }
+
+        function updateStats(stats) {
+            document.getElementById('statTotal').textContent = stats.total_categories || 0;
+            document.getElementById('statTotalAmount').textContent = '$ ' + formatNumber(stats.total_default || 0);
+            document.getElementById('statMostUsed').textContent = stats.most_used_name || '—';
+        }
+
+        // Edit
+        window.editCategory = function(id) {
+            var cat = null;
+            for (var i = 0; i < categories.length; i++) {
+                if (categories[i].fee_type_id == id) { cat = categories[i]; break; }
+            }
+            if (!cat) return;
+
+            editMode = true;
+            document.getElementById('categoryId').value = cat.fee_type_id;
+            document.getElementById('categoryName').value = cat.fee_name;
+            document.getElementById('categoryDescription').value = cat.description || '';
+            document.getElementById('categoryAmount').value = cat.default_amount;
+
+            modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Category';
+            submitBtn.textContent = 'Update Category';
+            modal.style.visibility = 'visible';
+            modal.style.opacity = '1';
+        };
+
+        // Submit
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var id = document.getElementById('categoryId').value;
+            var payload = {
+                fee_name: document.getElementById('categoryName').value.trim(),
+                description: document.getElementById('categoryDescription').value.trim(),
+                default_amount: parseFloat(document.getElementById('categoryAmount').value) || 0
+            };
+
+            var url = editMode ? 'backend/update_fee_category.php' : 'backend/add_fee_category.php';
+            if (editMode) payload.fee_type_id = parseInt(id);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        var res = JSON.parse(xhr.responseText);
+                        if (res.success) {
+                            alert(res.message);
+                            modal.style.visibility = 'hidden';
+                            modal.style.opacity = '0';
+                            loadCategories();
+                        } else {
+                            alert('Error: ' + res.message);
+                        }
+                    } catch(err) {
+                        alert('Invalid server response: ' + xhr.responseText);
+                    }
+                } else {
+                    alert('HTTP error ' + xhr.status);
+                }
+            };
+            xhr.onerror = function() {
+                alert('Network error');
+            };
+            xhr.send(JSON.stringify(payload));
+        });
+
+        // Delete
+        window.deleteCategory = function(id, name, usageCount) {
+            var msg = 'Delete category "' + name + '"?';
+            if (usageCount > 0) {
+                msg += '\n\n⚠️ This category is used in ' + usageCount + ' fee record(s).';
+                msg += '\nDeleting it may break those records.';
+            }
+            if (!confirm(msg)) return;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'backend/delete_fee_category.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        var res = JSON.parse(xhr.responseText);
+                        if (res.success) {
+                            alert(res.message);
+                            loadCategories();
+                        } else {
+                            alert('Cannot delete: ' + res.message);
+                        }
+                    } catch(e) {
+                        alert('Invalid response');
+                    }
+                } else {
+                    alert('HTTP error ' + xhr.status);
+                }
+            };
+            xhr.send(JSON.stringify({fee_type_id: id}));
+        };
+
+        // Search (debounced)
+        var searchTimer = null;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(loadCategories, 300);
+        });
+
+        // Helpers
+        function formatNumber(num) {
+            if (!num) return '0.00';
+            return parseFloat(num).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                if (m === '"') return '&quot;';
+                return m;
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fee Management System | Fees</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+</head>
+<body>
+    <div class="app-container">
+        <!-- Side Panel -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="system-title">Fee Management System</h1>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="index.html" class="nav-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li class="nav-item"><a href="students.html" class="nav-link"><i class="fas fa-user-graduate"></i> Students</a></li>
+                    <li class="nav-item"><a href="fees.html" class="nav-link active"><i class="fas fa-money-bill-wave"></i> Fees</a></li>
+                    <li class="nav-item"><a href="generate_monthly_fees.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Generate Monthly Fees</a></li>
+                    <li class="nav-item"><a href="payment_approval.html" class="nav-link"><i class="fas fa-check-double"></i> Payment Approval</a></li>
+                    <li class="nav-item"><a href="fee_categories.html" class="nav-link"><i class="fas fa-tags"></i> Fee Categories</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-users"></i> Parents</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-user-cog"></i> Users</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-chalkboard-teacher"></i> Academic Info</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-credit-card"></i> Payment Methods</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-sliders-h"></i> Setting</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h2>Fee Management</h2>
+                <p>Manage student fees, track payments, and view payment progress in USD.</p>
+            </div>
+            <div class="content-area">
+                <button id="openAddFeeModalBtn" class="btn-add-fee"><i class="fas fa-plus-circle"></i> Assign New Fee</button>
+                
+                <div style="overflow-x: auto;">
+                    <table class="students-table" id="feesTable">
+                        <thead>
+                            <tr>
+                                <th>Fee ID</th>
+                                <th>Student</th>
+                                <th>Fee Type</th>
+                                <th>Total Amount (USD)</th>
+                                <th>Payment Progress</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feesTableBody">
+                            <tr><td colspan="7" style="text-align:center;">Loading fees...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Assign New Fee -->
+    <div id="addFeeModal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Assign New Fee</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="addFeeForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Student *</label>
+                        <select id="studentId" required>
+                            <option value="">Select Student</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fee Type *</label>
+                        <select id="feeTypeId" required>
+                            <option value="">Select Fee Type</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Amount (USD) *</label>
+                        <input type="number" id="totalAmount" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date</label>
+                        <input type="date" id="dueDate">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel">Cancel</button>
+                    <button type="submit" class="btn-submit">Assign Fee</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Edit Fee -->
+    <div id="editFeeModal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Edit Fee</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="editFeeForm">
+                <div class="modal-body">
+                    <input type="hidden" id="editFeeId">
+                    <div class="form-group">
+                        <label>Student</label>
+                        <input type="text" id="editStudentName" disabled style="background:#f1f5f9;">
+                    </div>
+                    <div class="form-group">
+                        <label>Fee Type *</label>
+                        <select id="editFeeTypeId" required>
+                            <option value="">Select Fee Type</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Amount (USD) *</label>
+                        <input type="number" id="editTotalAmount" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date</label>
+                        <input type="date" id="editDueDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Amount Paid (USD)</label>
+                        <input type="text" id="editAmountPaid" disabled style="background:#f1f5f9;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel">Cancel</button>
+                    <button type="submit" class="btn-submit">Update Fee</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Debit Payment -->
+    <div id="debitModal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-money-bill-wave"></i> Record Payment</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="debitForm">
+                <div class="modal-body">
+                    <input type="hidden" id="debitFeeId">
+                    <input type="hidden" id="debitStudentId">
+                    <div class="form-group">
+                        <label>Amount (USD) *</label>
+                        <input type="number" id="debitAmount" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <select id="paymentMethod">
+                            <option value="Cash">Cash</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Mobile Money">Mobile Money</option>
+                            <option value="Check">Check</option>
+                            <option value="Credit Card">Credit Card</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Receipt Number (Optional)</label>
+                        <input type="text" id="receiptNo">
+                    </div>
+                    <div class="form-group">
+                        <label>Notes (Optional)</label>
+                        <textarea id="paymentNotes" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel">Cancel</button>
+                    <button type="submit" class="btn-submit">Record Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Fee History -->
+    <div id="historyModal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-history"></i> Student Fee History</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body" id="historyModalBody">
+                <div style="text-align:center;">Loading...</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        var feesTableBody = document.getElementById('feesTableBody');
+        var addFeeModal = document.getElementById('addFeeModal');
+        var editFeeModal = document.getElementById('editFeeModal');
+        var debitModal = document.getElementById('debitModal');
+        var historyModal = document.getElementById('historyModal');
+        var openAddBtn = document.getElementById('openAddFeeModalBtn');
+        var addFeeForm = document.getElementById('addFeeForm');
+        var editFeeForm = document.getElementById('editFeeForm');
+        var debitForm = document.getElementById('debitForm');
+        
+        var currentDebitFeeId = null;
+        var currentDebitStudentId = null;
+
+        // Open Add Fee Modal
+        openAddBtn.onclick = function() {
+            loadStudentsForDropdown();
+            loadFeeTypesForDropdown('feeTypeId');
+            addFeeModal.style.visibility = 'visible';
+            addFeeModal.style.opacity = '1';
+        };
+
+        // Close modals
+        var closeBtns = document.querySelectorAll('.close-modal, .btn-cancel');
+        for (var i = 0; i < closeBtns.length; i++) {
+            closeBtns[i].onclick = function() {
+                addFeeModal.style.visibility = 'hidden';
+                addFeeModal.style.opacity = '0';
+                editFeeModal.style.visibility = 'hidden';
+                editFeeModal.style.opacity = '0';
+                debitModal.style.visibility = 'hidden';
+                debitModal.style.opacity = '0';
+                historyModal.style.visibility = 'hidden';
+                historyModal.style.opacity = '0';
+            };
+        }
+
+        window.onclick = function(event) {
+            if (event.target === addFeeModal) {
+                addFeeModal.style.visibility = 'hidden';
+                addFeeModal.style.opacity = '0';
+            }
+            if (event.target === editFeeModal) {
+                editFeeModal.style.visibility = 'hidden';
+                editFeeModal.style.opacity = '0';
+            }
+            if (event.target === debitModal) {
+                debitModal.style.visibility = 'hidden';
+                debitModal.style.opacity = '0';
+            }
+            if (event.target === historyModal) {
+                historyModal.style.visibility = 'hidden';
+                historyModal.style.opacity = '0';
+            }
+        };
+
+        // Load fees table
+        function loadFees() {
+            feesTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading...</td></tr>';
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'backend/get_fees.php', true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        if (data.success) {
+                            displayFees(data.fees);
+                        } else {
+                            feesTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Error loading fees</td></tr>';
+                        }
+                    } catch(e) {
+                        feesTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Invalid response</td></tr>';
+                    }
+                } else {
+                    feesTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Failed to load data</td></tr>';
+                }
+            };
+            xhr.onerror = function() {
+                feesTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Network error</td></tr>';
+            };
+            xhr.send();
+        }
+
+        function displayFees(fees) {
+            if (fees.length === 0) {
+                feesTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No fees assigned yet. Click "Assign New Fee" to get started.</td></tr>';
+                return;
+            }
+            
+            var html = '';
+            for (var i = 0; i < fees.length; i++) {
+                var f = fees[i];
+                var progress = f.payment_progress || 0;
+                var statusClass = '';
+                if (f.status === 'Paid') statusClass = 'status-paid';
+                else if (f.status === 'Partial') statusClass = 'status-partial';
+                else if (f.status === 'Pending') statusClass = 'status-pending';
+                else statusClass = 'status-overdue';
+                
+                html += '<tr>';
+                html += '<td>' + f.fee_id + '</td>';
+                html += '<td>' + escapeHtml(f.student_name) + '<br><small style="color:#64748b;">' + f.roll_number + ' | ' + f.class + '</small></td>';
+                html += '<td>' + escapeHtml(f.fee_type) + '</td>';
+                html += '<td>$ ' + formatNumber(f.total_amount) + '</td>';
+                html += '<td><div class="progress-bar-container"><div class="progress-bar" style="width: ' + progress + '%;"></div></div><span class="progress-text">$ ' + formatNumber(f.amount_paid) + ' / $ ' + formatNumber(f.total_amount) + ' (' + progress + '%)</span></td>';
+                html += '<td><span class="status-badge ' + statusClass + '">' + f.status + '</span></td>';
+                html += '<td class="action-buttons">';
+                html += '<button class="action-btn email" onclick="sendEmail(' + f.fee_id + ', \'' + escapeHtml(f.student_name) + '\')" title="Email"><i class="fas fa-envelope"></i></button>';
+                html += '<button class="action-btn whatsapp" onclick="sendWhatsApp(' + f.fee_id + ', \'' + escapeHtml(f.student_name) + '\')" title="WhatsApp"><i class="fab fa-whatsapp"></i></button>';
+                html += '<button class="action-btn edit" onclick="editFee(' + f.fee_id + ')" title="Edit Fee"><i class="fas fa-edit"></i></button>';
+                html += '<button class="action-btn delete" onclick="deleteFee(' + f.fee_id + ')" title="Delete Fee"><i class="fas fa-trash-alt"></i></button>';
+                html += '<button class="action-btn debit" onclick="openDebitModal(' + f.fee_id + ', ' + f.student_id + ')" title="Record Payment"><i class="fas fa-credit-card"></i></button>';
+                html += '<button class="action-btn history" onclick="viewHistory(' + f.student_id + ')" title="View Fee History"><i class="fas fa-history"></i></button>';
+                html += '</td>';
+                html += '</tr>';
+            }
+            feesTableBody.innerHTML = html;
+        }
+
+        function formatNumber(num) {
+            return parseFloat(num).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Load students for dropdown
+        function loadStudentsForDropdown() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'backend/get_students_list.php', true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.success) {
+                        var select = document.getElementById('studentId');
+                        select.innerHTML = '<option value="">Select Student</option>';
+                        for (var i = 0; i < data.students.length; i++) {
+                            select.innerHTML += '<option value="' + data.students[i].student_id + '">' + escapeHtml(data.students[i].student_name) + ' (' + data.students[i].roll_number + ')</option>';
+                        }
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        // Load fee types for dropdown
+        function loadFeeTypesForDropdown(targetId) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'backend/get_fee_types.php', true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.success) {
+                        var select = document.getElementById(targetId);
+                        select.innerHTML = '<option value="">Select Fee Type</option>';
+                        for (var i = 0; i < data.fee_types.length; i++) {
+                            select.innerHTML += '<option value="' + data.fee_types[i].fee_type_id + '" data-amount="' + data.fee_types[i].default_amount + '">' + escapeHtml(data.fee_types[i].fee_name) + ' ($ ' + formatNumber(data.fee_types[i].default_amount) + ')</option>';
+                        }
+                        
+                        // Auto-fill amount when fee type is selected (only for add form)
+                        if (targetId === 'feeTypeId') {
+                            document.getElementById('feeTypeId').onchange = function() {
+                                var selected = this.options[this.selectedIndex];
+                                var amount = selected.getAttribute('data-amount');
+                                if (amount) {
+                                    document.getElementById('totalAmount').value = amount;
+                                }
+                            };
+                        }
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        // Add new fee
+        addFeeForm.onsubmit = function(e) {
+            e.preventDefault();
+            var data = {
+                student_id: document.getElementById('studentId').value,
+                fee_type_id: document.getElementById('feeTypeId').value,
+                total_amount: document.getElementById('totalAmount').value,
+                due_date: document.getElementById('dueDate').value || null
+            };
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'backend/add_fee.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        alert('Fee assigned successfully!');
+                        addFeeModal.style.visibility = 'hidden';
+                        addFeeModal.style.opacity = '0';
+                        addFeeForm.reset();
+                        loadFees();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                } else {
+                    alert('HTTP error ' + xhr.status);
+                }
+            };
+            xhr.send(JSON.stringify(data));
+        };
+
+        // Edit fee - load data
+        window.editFee = function(feeId) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'backend/get_fee_details.php?id=' + feeId, true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        var fee = response.fee;
+                        document.getElementById('editFeeId').value = fee.fee_id;
+                        document.getElementById('editStudentName').value = fee.student_name + ' (' + fee.roll_number + ')';
+                        document.getElementById('editTotalAmount').value = fee.total_amount;
+                        document.getElementById('editDueDate').value = fee.due_date || '';
+                        document.getElementById('editAmountPaid').value = '$ ' + formatNumber(fee.amount_paid);
+                        
+                        // Load fee types and set selected
+                        loadFeeTypesForDropdown('editFeeTypeId');
+                        setTimeout(function() {
+                            document.getElementById('editFeeTypeId').value = fee.fee_type_id;
+                        }, 500);
+                        
+                        editFeeModal.style.visibility = 'visible';
+                        editFeeModal.style.opacity = '1';
+                    } else {
+                        alert('Error loading fee details');
+                    }
+                }
+            };
+            xhr.send();
+        };
+
+        // Update fee
+        editFeeForm.onsubmit = function(e) {
+            e.preventDefault();
+            var data = {
+                fee_id: document.getElementById('editFeeId').value,
+                fee_type_id: document.getElementById('editFeeTypeId').value,
+                total_amount: document.getElementById('editTotalAmount').value,
+                due_date: document.getElementById('editDueDate').value || null
+            };
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'backend/update_fee.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        alert('Fee updated successfully!');
+                        editFeeModal.style.visibility = 'hidden';
+                        editFeeModal.style.opacity = '0';
+                        loadFees();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                }
+            };
+            xhr.send(JSON.stringify(data));
+        };
+
+        // Delete fee
+        window.deleteFee = function(feeId) {
+            if (confirm('Are you sure you want to delete this fee record?')) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'backend/delete_fee.php', true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.success) {
+                            alert('Fee deleted successfully');
+                            loadFees();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    }
+                };
+                xhr.send(JSON.stringify({fee_id: feeId}));
+            }
+        };
+
+        // Open debit modal
+        window.openDebitModal = function(feeId, studentId) {
+            currentDebitFeeId = feeId;
+            currentDebitStudentId = studentId;
+            document.getElementById('debitFeeId').value = feeId;
+            document.getElementById('debitStudentId').value = studentId;
+            document.getElementById('debitAmount').value = '';
+            document.getElementById('receiptNo').value = '';
+            document.getElementById('paymentNotes').value = '';
+            document.getElementById('paymentMethod').value = 'Cash';
+            debitModal.style.visibility = 'visible';
+            debitModal.style.opacity = '1';
+        };
+
+        // Record debit payment with history
+        debitForm.onsubmit = function(e) {
+            e.preventDefault();
+            var amount = document.getElementById('debitAmount').value;
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+            
+            var data = {
+                fee_id: currentDebitFeeId,
+                student_id: currentDebitStudentId,
+                amount: amount,
+                payment_method: document.getElementById('paymentMethod').value,
+                receipt_no: document.getElementById('receiptNo').value || null,
+                notes: document.getElementById('paymentNotes').value || null
+            };
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'backend/add_payment_history.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        alert('Payment recorded successfully!');
+                        debitModal.style.visibility = 'hidden';
+                        debitModal.style.opacity = '0';
+                        loadFees();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                }
+            };
+            xhr.send(JSON.stringify(data));
+        };
+
+        // View student fee history
+        window.viewHistory = function(studentId) {
+            var modalBody = document.getElementById('historyModalBody');
+            modalBody.innerHTML = 'Loading...';
+            historyModal.style.visibility = 'visible';
+            historyModal.style.opacity = '1';
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'backend/get_fee_history.php?student_id=' + studentId, true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.success) {
+                        displayHistory(data);
+                    } else {
+                        modalBody.innerHTML = '<div style="text-align:center;color:red;">Error loading history</div>';
+                    }
+                }
+            };
+            xhr.send();
+        };
+        
+        function displayHistory(data) {
+            var html = '';
+            
+            // Student Info
+            html += '<div class="history-student-info">';
+            html += '<h4><i class="fas fa-user-graduate"></i> ' + escapeHtml(data.student.student_name) + '</h4>';
+            html += '<p><strong>Roll Number:</strong> ' + escapeHtml(data.student.roll_number) + ' | <strong>Class:</strong> ' + escapeHtml(data.student.class) + '</p>';
+            html += '</div>';
+            
+            // Fee Summary Section
+            html += '<div class="history-section">';
+            html += '<h4><i class="fas fa-receipt"></i> Fee Summary</h4>';
+            html += '<table class="history-table">';
+            html += '<thead><tr><th>Fee Type</th><th>Total Amount</th><th>Amount Paid</th><th>Balance</th><th>Status</th><th>Due Date</th></tr></thead><tbody>';
+            
+            var totalFees = 0;
+            var totalPaid = 0;
+            
+            for (var i = 0; i < data.fees.length; i++) {
+                var f = data.fees[i];
+                totalFees += parseFloat(f.total_amount);
+                totalPaid += parseFloat(f.amount_paid);
+                var balance = f.total_amount - f.amount_paid;
+                var statusClass = f.status === 'Paid' ? 'status-paid' : (f.status === 'Partial' ? 'status-partial' : 'status-pending');
+                html += '<tr>';
+                html += '<td>' + escapeHtml(f.fee_type) + '</td>';
+                html += '<td>$ ' + formatNumber(f.total_amount) + '</td>';
+                html += '<td>$ ' + formatNumber(f.amount_paid) + '</td>';
+                html += '<td>$ ' + formatNumber(balance) + '</td>';
+                html += '<td><span class="status-badge ' + statusClass + '">' + f.status + '</span></td>';
+                html += '<td>' + (f.due_date || 'N/A') + '</td>';
+                html += '</tr>';
+            }
+            
+            html += '<tr style="background:#f1f5f9; font-weight:bold;">';
+            html += '<td>Totals</td>';
+            html += '<td>$ ' + formatNumber(totalFees) + '</td>';
+            html += '<td>$ ' + formatNumber(totalPaid) + '</td>';
+            html += '<td>$ ' + formatNumber(totalFees - totalPaid) + '</td>';
+            html += '<td colspan="2"></td>';
+            html += '</tr>';
+            html += '</tbody></table></div>';
+            
+            // Payment History Section
+            html += '<div class="history-section">';
+            html += '<h4><i class="fas fa-history"></i> Payment History</h4>';
+            if (data.payments.length === 0) {
+                html += '<p>No payment records found.</p>';
+            } else {
+                html += '<table class="history-table">';
+                html += '<thead><tr><th>Date</th><th>Fee Type</th><th>Amount Paid</th><th>Payment Method</th><th>Receipt No</th><th>Notes</th></tr></thead><tbody>';
+                for (var p = 0; p < data.payments.length; p++) {
+                    var pay = data.payments[p];
+                    html += '<tr>';
+                    html += '<td>' + pay.payment_date + '</td>';
+                    html += '<td>' + escapeHtml(pay.fee_type) + '</td>';
+                    html += '<td>$ ' + formatNumber(pay.amount_paid) + '</td>';
+                    html += '<td><span class="payment-method-badge">' + escapeHtml(pay.payment_method) + '</span></td>';
+                    html += '<td>' + (pay.receipt_no || '-') + '</td>';
+                    html += '<td>' + (pay.notes || '-') + '</td>';
+                    html += '</tr>';
+                }
+                html += '</tbody></table>';
+            }
+            html += '</div>';
+            
+            document.getElementById('historyModalBody').innerHTML = html;
+        }
+
+        // Email action (placeholder)
+        window.sendEmail = function(feeId, studentName) {
+            alert('Email feature will be implemented. Sending fee statement for: ' + studentName);
+        };
+
+        // WhatsApp action (placeholder)
+        window.sendWhatsApp = function(feeId, studentName) {
+            alert('WhatsApp feature will be implemented. Sending fee reminder for: ' + studentName);
+        };
+
+        // Load fees on page load
+        loadFees();
+    </script>
+</body>
+</html>

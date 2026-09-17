@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fee Management System | Payment Approval</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="system-title">Fee Management System</h1>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="index.html" class="nav-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li class="nav-item"><a href="students.html" class="nav-link"><i class="fas fa-user-graduate"></i> Students</a></li>
+                    <li class="nav-item"><a href="fees.html" class="nav-link"><i class="fas fa-money-bill-wave"></i> Fees</a></li>
+                    <li class="nav-item"><a href="generate_monthly_fees.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Generate Monthly Fees</a></li>
+                    <li class="nav-item"><a href="payment_approval.html" class="nav-link active"><i class="fas fa-check-double"></i> Payment Approval</a></li>
+                    <li class="nav-item"><a href="fee_categories.html" class="nav-link"><i class="fas fa-tags"></i> Fee Categories</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-users"></i> Parents</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-user-cog"></i> Users</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-chalkboard-teacher"></i> Academic Info</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-credit-card"></i> Payment Methods</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-sliders-h"></i> Setting</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main-content">
+            <div class="content-header">
+                <h2>Payment Approval</h2>
+                <p>Review, approve or reject student payments before they affect fee balances.</p>
+            </div>
+            <div class="content-area">
+
+                <!-- SUMMARY CARDS -->
+                <div class="summary-cards">
+                    <div class="summary-card pending">
+                        <div class="summary-icon"><i class="fas fa-hourglass-half"></i></div>
+                        <div class="summary-info">
+                            <h4>Pending</h4>
+                            <div class="value" id="pendingCount">0</div>
+                        </div>
+                    </div>
+                    <div class="summary-card approved">
+                        <div class="summary-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="summary-info">
+                            <h4>Approved Today</h4>
+                            <div class="value" id="approvedToday">0</div>
+                        </div>
+                    </div>
+                    <div class="summary-card rejected">
+                        <div class="summary-icon"><i class="fas fa-times-circle"></i></div>
+                        <div class="summary-info">
+                            <h4>Rejected Today</h4>
+                            <div class="value" id="rejectedToday">0</div>
+                        </div>
+                    </div>
+                    <div class="summary-card amount">
+                        <div class="summary-icon"><i class="fas fa-dollar-sign"></i></div>
+                        <div class="summary-info">
+                            <h4>Pending Amount</h4>
+                            <div class="value" id="pendingAmount">$0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TABS -->
+                <div class="approval-tabs">
+                    <button class="approval-tab active" data-status="Pending"><i class="fas fa-hourglass-half"></i> Pending</button>
+                    <button class="approval-tab" data-status="Approved"><i class="fas fa-check"></i> Approved</button>
+                    <button class="approval-tab" data-status="Rejected"><i class="fas fa-times"></i> Rejected</button>
+                    <button class="approval-tab" data-status="all"><i class="fas fa-list"></i> All</button>
+                </div>
+
+                <!-- FILTER BAR -->
+                <div class="approval-filter-bar">
+                    <div class="approval-filter-row">
+                        <div class="fg search">
+                            <label><i class="fas fa-search"></i> Search</label>
+                            <input type="text" id="searchInput" placeholder="Student, roll number or receipt no...">
+                        </div>
+                        <div class="fg">
+                            <label><i class="fas fa-credit-card"></i> Method</label>
+                            <select id="methodFilter">
+                                <option value="all">All Methods</option>
+                            </select>
+                        </div>
+                        <div class="fg">
+                            <label><i class="fas fa-calendar"></i> From</label>
+                            <input type="date" id="dateFrom">
+                        </div>
+                        <div class="fg">
+                            <label><i class="fas fa-calendar"></i> To</label>
+                            <input type="date" id="dateTo">
+                        </div>
+                        <div class="fg" style="flex:0; min-width:auto;">
+                            <label>&nbsp;</label>
+                            <button id="clearFiltersBtn" class="clear-filter-btn" style="padding:10px 22px; border-radius:40px; border:1px solid #e2e8f0; background:#f1f5f9; cursor:pointer; font-weight:500; height:42px;">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BULK BAR -->
+                <div class="bulk-bar" id="bulkBar">
+                    <div class="info"><span id="selectedCount">0</span> payment(s) selected</div>
+                    <div class="bulk-actions">
+                        <button class="btn-approve-bulk" id="bulkApproveBtn"><i class="fas fa-check"></i> Approve Selected</button>
+                        <button class="btn-reject-bulk" id="bulkRejectBtn"><i class="fas fa-times"></i> Reject Selected</button>
+                        <button class="btn-clear-selection" id="clearSelectionBtn">Clear</button>
+                    </div>
+                </div>
+
+                <!-- TABLE -->
+                <div style="overflow-x: auto;">
+                    <table class="students-table" id="paymentsTable">
+                        <thead>
+                            <tr>
+                                <th style="width:40px;"><input type="checkbox" id="selectAllCheckbox" class="payment-checkbox"></th>
+                                <th>Date</th>
+                                <th>Student</th>
+                                <th>Fee Type</th>
+                                <th>Amount (USD)</th>
+                                <th>Method</th>
+                                <th>Receipt No</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTableBody">
+                            <tr><td colspan="9" style="text-align:center;">Loading payments...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- DETAILS MODAL -->
+    <div id="detailsModal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 520px; height:auto; max-height:85vh;">
+            <div class="modal-header">
+                <h3><i class="fas fa-receipt"></i> Payment Details</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body" id="detailsModalBody">Loading...</div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REJECT MODAL -->
+    <div id="rejectModal" class="modal-overlay">
+        <div class="modal-container reject-modal" style="max-width: 480px; height:auto; max-height:85vh;">
+            <div class="modal-header">
+                <h3><i class="fas fa-times-circle" style="color:#ef4444;"></i> Reject Payment</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom:12px; color:#475569;">Please provide a reason for rejecting this payment:</p>
+                <textarea id="rejectReason" placeholder="e.g., Receipt number does not match, Amount does not match..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel">Cancel</button>
+                <button type="button" id="confirmRejectBtn" class="btn-submit" style="background:#ef4444;">Reject Payment</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        var currentStatus = 'Pending';
+        var payments = [];
+        var selectedPaymentIds = [];
+        var rejectTargetIds = [];
+
+        // DOM
+        var tableBody = document.getElementById('paymentsTableBody');
+        var searchInput = document.getElementById('searchInput');
+        var methodFilter = document.getElementById('methodFilter');
+        var dateFrom = document.getElementById('dateFrom');
+        var dateTo = document.getElementById('dateTo');
+        var bulkBar = document.getElementById('bulkBar');
+        var selectedCountEl = document.getElementById('selectedCount');
+        var selectAllCheckbox = document.getElementById('selectAllCheckbox');
+
+        // Init
+        loadPaymentMethods();
+        loadPayments();
+
+        // Tabs
+        var tabBtns = document.querySelectorAll('.approval-tab');
+        for (var i = 0; i < tabBtns.length; i++) {
+            tabBtns[i].addEventListener('click', function() {
+                for (var j = 0; j < tabBtns.length; j++) tabBtns[j].classList.remove('active');
+                this.classList.add('active');
+                currentStatus = this.getAttribute('data-status');
+                selectedPaymentIds = [];
+                updateBulkBar();
+                loadPayments();
+            });
+        }
+
+        function loadPayments() {
+            tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Loading...</td></tr>';
+            var params = '?status=' + encodeURIComponent(currentStatus);
+            if (searchInput.value) params += '&search=' + encodeURIComponent(searchInput.value);
+            if (methodFilter.value && methodFilter.value !== 'all') params += '&method=' + encodeURIComponent(methodFilter.value);
+            if (dateFrom.value) params += '&date_from=' + encodeURIComponent(dateFrom.value);
+            if (dateTo.value) params += '&date_to=' + encodeURIComponent(dateTo.value);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'backend/get_pending_payments.php' + params, true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        if (data.success) {
+                            payments = data.payments;
+                            displayPayments(payments);
+                            updateSummary(data.counts);
+                        } else {
+                            tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Error loading payments</td></tr>';
+                        }
+                    } catch(e) {
+                        tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Invalid response</td></tr>';
+                    }
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center;">HTTP error ' + xhr.status + '</td></tr>';
+                }
+            };
+            xhr.onerror = function() {
+                tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Network error</td></tr>';
+            };
+            xhr.send();
+        }
+
+        function displayPayments(list) {
+            if (!list || list.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No payments found.</td></tr>';
+                selectAllCheckbox.checked = false;
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < list.length; i++) {
+                var p = list[i];
+                var statusClass = p.approval_status === 'Pending' ? 'approval-pending' : (p.approval_status === 'Approved' ? 'approval-approved' : 'approval-rejected');
+                var isPending = p.approval_status === 'Pending';
+                var isChecked = selectedPaymentIds.indexOf(String(p.payment_id)) > -1 ? 'checked' : '';
+
+                html += '<tr>';
+                if (isPending) {
+                    html += '<td><input type="checkbox" class="payment-checkbox row-checkbox" value="' + p.payment_id + '" ' + isChecked + '></td>';
+                } else {
+                    html += '<td></td>';
+                }
+                html += '<td>' + formatDate(p.payment_date) + '</td>';
+                html += '<td>' + escapeHtml(p.student_name) + '<br><small style="color:#64748b;">' + escapeHtml(p.roll_number || '') + ' | ' + escapeHtml(p.class || '') + '</small></td>';
+                html += '<td>' + escapeHtml(p.fee_type) + '</td>';
+                html += '<td><strong>$ ' + formatNumber(p.amount_paid) + '</strong></td>';
+                html += '<td><span class="method-badge">' + escapeHtml(p.payment_method || 'Cash') + '</span></td>';
+                html += '<td>' + (p.receipt_no ? escapeHtml(p.receipt_no) : '-') + '</td>';
+                html += '<td><span class="approval-badge ' + statusClass + '">' + p.approval_status + '</span></td>';
+                html += '<td class="approval-actions">';
+                html += '<button class="btn-view" onclick="viewPayment(' + p.payment_id + ')" title="View details"><i class="fas fa-eye"></i></button>';
+                if (isPending) {
+                    html += '<button class="btn-approve" onclick="approvePayment(' + p.payment_id + ')" title="Approve"><i class="fas fa-check"></i></button>';
+                    html += '<button class="btn-reject" onclick="openRejectModal([' + p.payment_id + '])" title="Reject"><i class="fas fa-times"></i></button>';
+                }
+                html += '</td></tr>';
+            }
+            tableBody.innerHTML = html;
+
+            var rowCheckboxes = document.querySelectorAll('.row-checkbox');
+            for (var c = 0; c < rowCheckboxes.length; c++) {
+                rowCheckboxes[c].addEventListener('change', function() {
+                    handleRowCheck(this);
+                });
+            }
+            selectAllCheckbox.checked = false;
+        }
+
+        function handleRowCheck(checkbox) {
+            var id = checkbox.value;
+            if (checkbox.checked) {
+                if (selectedPaymentIds.indexOf(id) === -1) selectedPaymentIds.push(id);
+            } else {
+                var idx = selectedPaymentIds.indexOf(id);
+                if (idx > -1) selectedPaymentIds.splice(idx, 1);
+            }
+            updateBulkBar();
+        }
+
+        selectAllCheckbox.addEventListener('change', function() {
+            var rowCheckboxes = document.querySelectorAll('.row-checkbox');
+            selectedPaymentIds = [];
+            for (var i = 0; i < rowCheckboxes.length; i++) {
+                rowCheckboxes[i].checked = selectAllCheckbox.checked;
+                if (selectAllCheckbox.checked) selectedPaymentIds.push(rowCheckboxes[i].value);
+            }
+            updateBulkBar();
+        });
+
+        function updateBulkBar() {
+            selectedCountEl.textContent = selectedPaymentIds.length;
+            if (selectedPaymentIds.length > 0) bulkBar.classList.add('show');
+            else bulkBar.classList.remove('show');
+        }
+
+        function updateSummary(counts) {
+            document.getElementById('pendingCount').textContent = counts.pending_count || 0;
+            document.getElementById('approvedToday').textContent = counts.approved_today || 0;
+            document.getElementById('rejectedToday').textContent = counts.rejected_today || 0;
+            document.getElementById('pendingAmount').textContent = '$ ' + formatNumber(counts.pending_amount || 0);
+        }
+
+        window.approvePayment = function(paymentId) {
+            if (!confirm('Approve this payment? It will be added to the fee balance.')) return;
+            processPayments([String(paymentId)], 'approve');
+        };
+
+        window.openRejectModal = function(paymentIds) {
+            rejectTargetIds = paymentIds;
+            document.getElementById('rejectReason').value = '';
+            document.getElementById('rejectModal').style.visibility = 'visible';
+            document.getElementById('rejectModal').style.opacity = '1';
+        };
+
+        document.getElementById('confirmRejectBtn').addEventListener('click', function() {
+            var reason = document.getElementById('rejectReason').value.trim();
+            if (!reason) {
+                alert('Please provide a reason for rejection');
+                return;
+            }
+            processPayments(rejectTargetIds, 'reject', reason);
+            document.getElementById('rejectModal').style.visibility = 'hidden';
+            document.getElementById('rejectModal').style.opacity = '0';
+        });
+
+        function processPayments(ids, action, reason) {
+            var payload = {
+                payment_ids: ids,
+                action: action,
+                reason: reason || null,
+                approved_by: 'Admin'
+            };
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'backend/approve_payment.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var res = JSON.parse(xhr.responseText);
+                    if (res.success) {
+                        alert(res.message);
+                        selectedPaymentIds = [];
+                        updateBulkBar();
+                        loadPayments();
+                    } else {
+                        alert('Error: ' + res.message);
+                    }
+                } else {
+                    alert('HTTP error: ' + xhr.status);
+                }
+            };
+            xhr.onerror = function() { alert('Network error'); };
+            xhr.send(JSON.stringify(payload));
+        }
+
+        document.getElementById('bulkApproveBtn').addEventListener('click', function() {
+            if (selectedPaymentIds.length === 0) return;
+            if (!confirm('Approve ' + selectedPaymentIds.length + ' payment(s)?')) return;
+            processPayments(selectedPaymentIds, 'approve');
+        });
+
+        document.getElementById('bulkRejectBtn').addEventListener('click', function() {
+            if (selectedPaymentIds.length === 0) return;
+            openRejectModal(selectedPaymentIds.slice());
+        });
+
+        document.getElementById('clearSelectionBtn').addEventListener('click', function() {
+            selectedPaymentIds = [];
+            var rowCheckboxes = document.querySelectorAll('.row-checkbox');
+            for (var i = 0; i < rowCheckboxes.length; i++) rowCheckboxes[i].checked = false;
+            selectAllCheckbox.checked = false;
+            updateBulkBar();
+        });
+
+        window.viewPayment = function(paymentId) {
+            var payment = null;
+            for (var i = 0; i < payments.length; i++) {
+                if (String(payments[i].payment_id) === String(paymentId)) { payment = payments[i]; break; }
+            }
+            if (!payment) return;
+
+            var html = '';
+            html += '<div class="detail-row"><span class="label">Payment ID</span><span class="value">#' + payment.payment_id + '</span></div>';
+            html += '<div class="detail-row"><span class="label">Student</span><span class="value">' + escapeHtml(payment.student_name) + '</span></div>';
+            html += '<div class="detail-row"><span class="label">Roll Number</span><span class="value">' + escapeHtml(payment.roll_number || '-') + '</span></div>';
+            html += '<div class="detail-row"><span class="label">Class</span><span class="value">' + escapeHtml(payment.class || '-') + '</span></div>';
+            html += '<div class="detail-row"><span class="label">Fee Type</span><span class="value">' + escapeHtml(payment.fee_type) + '</span></div>';
+            html += '<div class="detail-row"><span class="label">Amount</span><span class="value">$ ' + formatNumber(payment.amount_paid) + '</span></div>';
+            html += '<div class="detail-row"><span class="label">Payment Date</span><span class="value">' + formatDate(payment.payment_date) + '</span></div>';
+            html += '<div class="detail-row"><span class="label">Method</span><span class="value">' + escapeHtml(payment.payment_method || 'Cash') + '</span></div>';
+            html += '<div class="detail-row"><span class="label">Receipt No</span><span class="value">' + (payment.receipt_no ? escapeHtml(payment.receipt_no) : '-') + '</span></div>';
+            html += '<div class="detail-row"><span class="label">Status</span><span class="value">' + payment.approval_status + '</span></div>';
+            if (payment.notes) {
+                html += '<div class="detail-row"><span class="label">Notes</span><span class="value">' + escapeHtml(payment.notes) + '</span></div>';
+            }
+            if (payment.approval_status === 'Rejected' && payment.rejection_reason) {
+                html += '<div class="detail-row"><span class="label">Rejection Reason</span><span class="value" style="color:#ef4444;">' + escapeHtml(payment.rejection_reason) + '</span></div>';
+            }
+            if (payment.approved_by) {
+                html += '<div class="detail-row"><span class="label">' + (payment.approval_status === 'Approved' ? 'Approved By' : 'Processed By') + '</span><span class="value">' + escapeHtml(payment.approved_by) + '</span></div>';
+            }
+            if (payment.approved_at) {
+                html += '<div class="detail-row"><span class="label">Processed At</span><span class="value">' + formatDate(payment.approved_at) + '</span></div>';
+            }
+            html += '<div class="detail-row"><span class="label">Fee Total</span><span class="value">$ ' + formatNumber(payment.total_amount) + '</span></div>';
+            html += '<div class="detail-row"><span class="label">Total Paid (approved)</span><span class="value">$ ' + formatNumber(payment.total_paid) + '</span></div>';
+
+            document.getElementById('detailsModalBody').innerHTML = html;
+            document.getElementById('detailsModal').style.visibility = 'visible';
+            document.getElementById('detailsModal').style.opacity = '1';
+        };
+
+        function loadPaymentMethods() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'backend/get_payment_methods.php', true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.success) {
+                        var select = document.getElementById('methodFilter');
+                        for (var i = 0; i < data.methods.length; i++) {
+                            var opt = document.createElement('option');
+                            opt.value = data.methods[i];
+                            opt.textContent = data.methods[i];
+                            select.appendChild(opt);
+                        }
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        searchInput.addEventListener('input', debounce(loadPayments, 400));
+        methodFilter.addEventListener('change', loadPayments);
+        dateFrom.addEventListener('change', loadPayments);
+        dateTo.addEventListener('change', loadPayments);
+
+        document.getElementById('clearFiltersBtn').addEventListener('click', function() {
+            searchInput.value = '';
+            methodFilter.value = 'all';
+            dateFrom.value = '';
+            dateTo.value = '';
+            loadPayments();
+        });
+
+        function debounce(fn, delay) {
+            var timer = null;
+            return function() {
+                var context = this, args = arguments;
+                clearTimeout(timer);
+                timer = setTimeout(function() { fn.apply(context, args); }, delay);
+            };
+        }
+
+        var closeBtns = document.querySelectorAll('.close-modal, .btn-cancel');
+        for (var b = 0; b < closeBtns.length; b++) {
+            closeBtns[b].addEventListener('click', function() {
+                document.getElementById('detailsModal').style.visibility = 'hidden';
+                document.getElementById('detailsModal').style.opacity = '0';
+                document.getElementById('rejectModal').style.visibility = 'hidden';
+                document.getElementById('rejectModal').style.opacity = '0';
+            });
+        }
+        window.addEventListener('click', function(e) {
+            if (e.target === document.getElementById('detailsModal')) {
+                document.getElementById('detailsModal').style.visibility = 'hidden';
+                document.getElementById('detailsModal').style.opacity = '0';
+            }
+            if (e.target === document.getElementById('rejectModal')) {
+                document.getElementById('rejectModal').style.visibility = 'hidden';
+                document.getElementById('rejectModal').style.opacity = '0';
+            }
+        });
+
+        function formatNumber(num) {
+            if (!num) return '0.00';
+            return parseFloat(num).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            var d = new Date(dateStr.replace(' ', 'T'));
+            if (isNaN(d)) return dateStr;
+            return d.toLocaleDateString('en-US', {year:'numeric', month:'short', day:'numeric'}) + ' ' +
+                   d.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
+        }
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+    </script>
+</body>
+</html>

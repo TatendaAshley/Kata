@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fee Management System | Students</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .modal-body { overflow-y: auto !important; max-height: calc(85vh - 120px) !important; }
+        .modal-container { height: 85vh !important; max-height: 85vh !important; overflow: hidden !important; }
+        .student-avatar { width: 40px; height: 40px; object-fit: cover; border-radius: 50%; }
+        .action-buttons button { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin: 0 4px; }
+        .edit-btn { color: #3b82f6; }
+        .delete-btn { color: #ef4444; }
+        .students-table img { border-radius: 50%; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header"><h1 class="system-title">Fee Management System</h1></div>
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="index.html" class="nav-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li class="nav-item"><a href="students.html" class="nav-link active"><i class="fas fa-user-graduate"></i> Students</a></li>
+                    <li class="nav-item"><a href="fees.html" class="nav-link"><i class="fas fa-money-bill-wave"></i> Fees</a></li>
+                    <li class="nav-item"><a href="generate_monthly_fees.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Generate Monthly Fees</a></li>
+                    <li class="nav-item"><a href="payment_approval.html" class="nav-link"><i class="fas fa-check-double"></i> Payment Approval</a></li>
+                    <li class="nav-item"><a href="fee_categories.html" class="nav-link"><i class="fas fa-tags"></i> Fee Categories</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-users"></i> Parents</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-user-cog"></i> Users</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-chalkboard-teacher"></i> Academic Info</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-credit-card"></i> Payment Methods</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-sliders-h"></i> Setting</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-header">
+                <h2>Student Management</h2>
+                <p>View, add, edit or manage student records.</p>
+            </div>
+            <div class="content-area">
+                <button id="openModalBtn" class="btn-add"><i class="fas fa-plus-circle"></i> Add New Student</button>
+                <div style="overflow-x: auto;">
+
+             <!-- Filter Row -->
+            <div class="filter-bar">
+                <!-- TOP ROW: Search + Class + Status -->
+                <div class="filter-top-row">
+                    <div class="filter-search">
+                        <label><i class="fas fa-search"></i> Search</label>
+                        <div class="search-wrapper">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInput" placeholder="Name, Roll Number, Email or Phone...">
+                        </div>
+                    </div>
+                    <div class="filter-class">
+                        <label><i class="fas fa-graduation-cap"></i> Class</label>
+                        <select id="filterClass">
+                            <option value="all">All Classes</option>
+                        </select>
+                    </div>
+                    <div class="filter-status">
+                        <label><i class="fas fa-flag-checkered"></i> Status</label>
+                        <select id="filterStatus">
+                            <option value="all">All Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- BOTTOM ROW: Admission Year + Clear Button -->
+                <div class="filter-bottom-row">
+                    <div class="filter-year">
+                        <label><i class="fas fa-calendar-alt"></i> Admission Year</label>
+                        <select id="filterYear">
+                            <option value="all">All Years</option>
+                        </select>
+                    </div>
+                    <div class="filter-clear">
+                        <button id="clearFiltersBtn" class="clear-filter-btn"><i class="fas fa-times-circle"></i> Clear All Filters</button>
+                    </div>
+                </div>
+            </div>
+                    <table class="students-table" id="studentsTable">
+                        <thead>
+                            <tr>
+                                <th>Picture</th>
+                                <th>Student Name</th>
+                                <th>Roll Number</th>
+                                <th>Class</th>
+                                <th>Section</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody">
+                            <tr><td colspan="7" style="text-align:center;">Loading students...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL FORM (same as before, keep as is) -->
+    <div id="studentModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> Register New Student</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="studentForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <!-- Basic Info -->
+                    <fieldset>
+                        <legend><i class="fas fa-info-circle"></i> Basic Information</legend>
+                        <div class="form-row">
+                            <div class="form-group"><label>Student Name *</label><input type="text" name="studentName" required></div>
+                            <div class="form-group"><label>Roll Number *</label><input type="text" name="rollNumber" required></div>
+                            <div class="form-group"><label>Associated ID</label><input type="text" name="associatedId"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Email</label><input type="email" name="email"></div>
+                            <div class="form-group"><label>Phone</label><input type="tel" name="phone"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Date of Birth</label><input type="date" name="dob"></div>
+                            <div class="form-group"><label>Gender</label><select name="gender"><option>Male</option><option>Female</option><option>Other</option></select></div>
+                        </div>
+                        <div class="form-group picture-group">
+                            <label>Student Picture</label>
+                            <input type="file" name="picture" id="pictureInput" accept="image/*">
+                            <div class="picture-preview"><img id="picturePreview" src="#" alt="Preview"></div>
+                        </div>
+                    </fieldset>
+                    <!-- Academic Info -->
+                    <fieldset>
+                        <legend><i class="fas fa-graduation-cap"></i> Academic Information</legend>
+                        <div class="form-row">
+                            <div class="form-group"><label>Academic Year</label><input type="text" name="academicYear" placeholder="e.g., 2025/2026"></div>
+                            <div class="form-group"><label>Class</label><select name="class"><option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option><option>Eders</option></select></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Section</label><select name="section"><option>Morning</option><option>Evening</option></select></div>
+                            <div class="form-group"><label>Status</label><select name="status"><option>Active</option><option>Inactive</option></select></div>
+                        </div>
+                    </fieldset>
+                    <!-- Parent/Guardian -->
+                    <fieldset>
+                        <legend><i class="fas fa-users"></i> Parent/Guardian Information</legend>
+                        <div class="form-row">
+                            <div class="form-group"><label>Select Parent</label><select name="parentType"><option>Father</option><option>Mother</option></select></div>
+                            <div class="form-group"><label>Father's Name</label><input type="text" name="fatherName"></div>
+                            <div class="form-group"><label>Mother's Name</label><input type="text" name="motherName"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Guardian Phone</label><input type="tel" name="guardianPhone"></div>
+                            <div class="form-group"><label>Guardian Email</label><input type="email" name="guardianEmail"></div>
+                        </div>
+                    </fieldset>
+                    <!-- Address -->
+                    <fieldset>
+                        <legend><i class="fas fa-map-marker-alt"></i> Address Information</legend>
+                        <div class="form-group"><label>Permanent Address</label><textarea name="permanentAddress" rows="2"></textarea></div>
+                        <div class="form-group"><label>Current Address</label><textarea name="currentAddress" rows="2"></textarea></div>
+                    </fieldset>
+                    <!-- Fee Config -->
+                    <fieldset>
+                        <legend><i class="fas fa-coins"></i> Fee Configuration</legend>
+                        <div class="form-row">
+                            <div class="form-group"><label>Advance Payment</label><input type="number" step="0.01" name="advancePayment"></div>
+                            <div class="form-group"><label>Discount (%)</label><input type="number" step="0.01" name="discount"></div>
+                            <div class="form-group"><label>Fee Structure</label><select name="feeStructure"><option>Termly</option><option>Monthly</option><option>Annual</option></select></div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel">Cancel</button>
+                    <button type="submit" class="btn-submit">Save Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+  <script>
+    // DOM elements
+    var modal = document.getElementById('studentModal');
+    var openBtn = document.getElementById('openModalBtn');
+    var form = document.getElementById('studentForm');
+    var pictureInput = document.getElementById('pictureInput');
+    var picturePreview = document.getElementById('picturePreview');
+    var tableBody = document.getElementById('studentsTableBody');
+    var modalTitle = document.querySelector('#studentModal .modal-header h3');
+    var submitBtn = document.querySelector('#studentModal .btn-submit');
+
+    // Edit mode variables
+    var editMode = false;
+    var editStudentId = null;
+
+    // Filter variables
+    var allStudents = [];
+    var currentFilters = {
+        search: '',
+        class: 'all',
+        status: 'all',
+        year: 'all'
+    };
+
+    // Load students on page load
+    loadStudents();
+
+    // Open modal for add
+    openBtn.onclick = function() {
+        resetFormToAddMode();
+        modal.style.visibility = 'visible';
+        modal.style.opacity = '1';
+    };
+
+    // Close modal
+    var closeBtns = document.querySelectorAll('.close-modal, .btn-cancel');
+    for (var i = 0; i < closeBtns.length; i++) {
+        closeBtns[i].onclick = function() {
+            modal.style.visibility = 'hidden';
+            modal.style.opacity = '0';
+            resetFormToAddMode();
+            form.reset();
+            picturePreview.style.display = 'none';
+            picturePreview.src = '#';
+        };
+    }
+
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            modal.style.visibility = 'hidden';
+            modal.style.opacity = '0';
+            resetFormToAddMode();
+        }
+    };
+
+    // Picture preview
+    if (pictureInput) {
+        pictureInput.onchange = function(evt) {
+            var file = evt.target.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    picturePreview.src = e.target.result;
+                    picturePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+    }
+
+    // Reset form to add mode
+    function resetFormToAddMode() {
+        editMode = false;
+        editStudentId = null;
+        modalTitle.innerHTML = '<i class="fas fa-user-plus"></i> Register New Student';
+        submitBtn.innerHTML = 'Save Student';
+        form.reset();
+        var hiddenId = document.querySelector('#studentForm input[name="student_id"]');
+        if (hiddenId) hiddenId.remove();
+    }
+
+    // Populate form for editing
+    function populateFormForEdit(student) {
+        setValue('input[name="studentName"]', student.student_name);
+        setValue('input[name="rollNumber"]', student.roll_number);
+        setValue('input[name="associatedId"]', student.associated_id);
+        setValue('input[name="email"]', student.email);
+        setValue('input[name="phone"]', student.phone);
+        setValue('input[name="dob"]', student.date_of_birth);
+        setSelectValue('select[name="gender"]', student.gender);
+        setValue('input[name="academicYear"]', student.academic_year);
+        setSelectValue('select[name="class"]', student.class);
+        setSelectValue('select[name="section"]', student.section);
+        setSelectValue('select[name="status"]', student.status);
+        setSelectValue('select[name="parentType"]', student.parentType);
+        setValue('input[name="fatherName"]', student.fatherName);
+        setValue('input[name="motherName"]', student.motherName);
+        setValue('input[name="guardianPhone"]', student.guardianPhone);
+        setValue('input[name="guardianEmail"]', student.guardianEmail);
+        setValue('textarea[name="permanentAddress"]', student.permanentAddress);
+        setValue('textarea[name="currentAddress"]', student.currentAddress);
+        setValue('input[name="advancePayment"]', student.advance_payment);
+        setValue('input[name="discount"]', student.discount);
+        setSelectValue('select[name="feeStructure"]', student.fee_structure);
+        
+        if (student.picture_path) {
+            picturePreview.src = student.picture_path;
+            picturePreview.style.display = 'block';
+        } else {
+            picturePreview.style.display = 'none';
+            picturePreview.src = '#';
+        }
+        
+        var hiddenId = document.createElement('input');
+        hiddenId.type = 'hidden';
+        hiddenId.name = 'student_id';
+        hiddenId.value = student.student_id;
+        form.appendChild(hiddenId);
+    }
+
+    function setValue(selector, value) {
+        var el = document.querySelector(selector);
+        if (el && value) el.value = value;
+    }
+    function setSelectValue(selector, value) {
+        var select = document.querySelector(selector);
+        if (select && value) {
+            for (var i = 0; i < select.options.length; i++) {
+                if (select.options[i].value === value) {
+                    select.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    // Edit student
+    window.editStudent = function(id) {
+        editMode = true;
+        editStudentId = id;
+        modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Student';
+        submitBtn.innerHTML = 'Update Student';
+        
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'backend/get_student.php?id=' + id, true);
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                try {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        populateFormForEdit(response.student);
+                        modal.style.visibility = 'visible';
+                        modal.style.opacity = '1';
+                    } else {
+                        alert('Failed to load student data: ' + response.message);
+                    }
+                } catch(e) {
+                    alert('Error parsing student data');
+                }
+            } else {
+                alert('HTTP error ' + xhr.status);
+            }
+        };
+        xhr.onerror = function() {
+            alert('Network error fetching student');
+        };
+        xhr.send();
+    };
+
+    // Delete student
+    window.deleteStudent = function(id) {
+        if (confirm('Delete this student permanently?')) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'backend/delete_student.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var res = JSON.parse(xhr.responseText);
+                    if (res.success) {
+                        alert('Student deleted');
+                        loadStudents();
+                    } else {
+                        alert('Delete failed: ' + res.message);
+                    }
+                } else {
+                    alert('HTTP error ' + xhr.status);
+                }
+            };
+            xhr.send(JSON.stringify({student_id: id}));
+        }
+    };
+
+    // Form submit (add or update)
+    form.onsubmit = function(e) {
+        e.preventDefault();
+        var formData = new FormData(form);
+        var url = editMode ? 'backend/update_student.php' : 'backend/add_student.php';
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', url, true);
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                try {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        alert(editMode ? 'Student updated successfully!' : 'Student added successfully!');
+                        modal.style.visibility = 'hidden';
+                        modal.style.opacity = '0';
+                        resetFormToAddMode();
+                        form.reset();
+                        picturePreview.style.display = 'none';
+                        loadStudents();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                } catch(e) {
+                    alert('Server response error: ' + xhr.responseText);
+                }
+            } else {
+                alert('HTTP error ' + xhr.status);
+            }
+        };
+        xhr.onerror = function() {
+            alert('Network error. Make sure you are using http://localhost');
+        };
+        xhr.send(formData);
+    };
+
+    // Load students from backend (stores allStudents, then populates filters and applies)
+    function loadStudents() {
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading...</td></tr>';
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'backend/get_students.php', true);
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.success && data.students.length > 0) {
+                        allStudents = data.students;
+                        populateFilterOptions(allStudents);
+                        applyFilters();
+                    } else if (data.success && data.students.length === 0) {
+                        allStudents = [];
+                        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No students found. Add one using the button above.</td></tr>';
+                    } else {
+                        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Error: ' + (data.message || 'Unknown') + '</td></tr>';
+                    }
+                } catch(e) {
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Invalid server response</td></tr>';
+                }
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Failed to load data (HTTP ' + xhr.status + ')</td></tr>';
+            }
+        };
+        xhr.onerror = function() {
+            tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Network error - cannot reach server</td></tr>';
+        };
+        xhr.send();
+    }
+
+    // Populate class and year dropdowns from data (unique values)
+    function populateFilterOptions(students) {
+    // Fixed class list (as requested)
+    var classList = ['Form 1', 'Form 2', 'Form 3', 'Form 4', 'Elders'];
+    var classSelect = document.getElementById('filterClass');
+    classSelect.innerHTML = '<option value="all">All Classes</option>';
+    for (var c = 0; c < classList.length; c++) {
+        var opt = document.createElement('option');
+        opt.value = classList[c];
+        opt.textContent = classList[c];
+        classSelect.appendChild(opt);
+    }
+    
+    // Year dropdown (still dynamic from database)
+    var yearSet = new Set();
+    for (var i = 0; i < students.length; i++) {
+        var s = students[i];
+        if (s.created_at) {
+            var year = new Date(s.created_at).getFullYear();
+            yearSet.add(year);
+        }
+    }
+    var yearSelect = document.getElementById('filterYear');
+    yearSelect.innerHTML = '<option value="all">All Years</option>';
+    var sortedYears = Array.from(yearSet).sort().reverse();
+    for (var y = 0; y < sortedYears.length; y++) {
+        var opt2 = document.createElement('option');
+        opt2.value = sortedYears[y];
+        opt2.textContent = sortedYears[y];
+        yearSelect.appendChild(opt2);
+    }
+}
+
+    // Apply filters based on currentFilters object
+    function applyFilters() {
+        var filtered = [];
+        for (var i = 0; i < allStudents.length; i++) {
+            var student = allStudents[i];
+            var match = true;
+            
+            // Search text (name, roll, email, phone)
+            var search = currentFilters.search.toLowerCase();
+            if (search) {
+                var nameMatch = student.student_name && student.student_name.toLowerCase().includes(search);
+                var rollMatch = student.roll_number && student.roll_number.toLowerCase().includes(search);
+                var emailMatch = student.email && student.email.toLowerCase().includes(search);
+                var phoneMatch = student.phone && student.phone.toLowerCase().includes(search);
+                if (!(nameMatch || rollMatch || emailMatch || phoneMatch)) match = false;
+            }
+            
+            // Class filter
+            if (match && currentFilters.class !== 'all' && student.class !== currentFilters.class) match = false;
+            // Status filter
+            if (match && currentFilters.status !== 'all' && student.status !== currentFilters.status) match = false;
+            // Year filter (admission year from created_at)
+            if (match && currentFilters.year !== 'all' && student.created_at) {
+                var studentYear = new Date(student.created_at).getFullYear();
+                if (studentYear != currentFilters.year) match = false;
+            }
+            
+            if (match) filtered.push(student);
+        }
+        displayStudents(filtered);
+    }
+
+    // Render students table
+    function displayStudents(students) {
+        if (students.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No matching students found.</td></tr>';
+            return;
+        }
+        var html = '';
+        for (var i = 0; i < students.length; i++) {
+            var s = students[i];
+            var pictureHtml = s.picture_path ? '<img src="' + s.picture_path + '" class="student-avatar" width="40" height="40">' : '<i class="fas fa-user-circle" style="font-size: 32px; color:#94a3b8;"></i>';
+            var statusClass = s.status === 'Active' ? 'style="color:green; font-weight:bold;"' : 'style="color:red; font-weight:bold;"';
+            html += '<tr>';
+            html += '<td>' + pictureHtml + '</td>';
+            html += '<td>' + escapeHtml(s.student_name) + '</td>';
+            html += '<td>' + escapeHtml(s.roll_number) + '</td>';
+            html += '<td>' + escapeHtml(s.class) + '</td>';
+            html += '<td>' + escapeHtml(s.section) + '</td>';
+            html += '<td ' + statusClass + '>' + escapeHtml(s.status) + '</td>';
+            html += '<td class="action-buttons">';
+            html += '<button class="edit-btn" onclick="editStudent(' + s.student_id + ')"><i class="fas fa-edit"></i></button>';
+            html += '<button class="delete-btn" onclick="deleteStudent(' + s.student_id + ')"><i class="fas fa-trash-alt"></i></button>';
+            html += '</td></tr>';
+        }
+        tableBody.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // Event listeners for filters
+    document.getElementById('searchInput').addEventListener('keyup', function(e) {
+        currentFilters.search = e.target.value;
+        applyFilters();
+    });
+    document.getElementById('filterClass').addEventListener('change', function(e) {
+        currentFilters.class = e.target.value;
+        applyFilters();
+    });
+    document.getElementById('filterStatus').addEventListener('change', function(e) {
+        currentFilters.status = e.target.value;
+        applyFilters();
+    });
+    document.getElementById('filterYear').addEventListener('change', function(e) {
+        currentFilters.year = e.target.value;
+        applyFilters();
+    });
+    document.getElementById('clearFiltersBtn').addEventListener('click', function() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('filterClass').value = 'all';
+        document.getElementById('filterStatus').value = 'all';
+        document.getElementById('filterYear').value = 'all';
+        currentFilters = { search: '', class: 'all', status: 'all', year: 'all' };
+        applyFilters();
+    });
+</script>
+</body>
+</html>
